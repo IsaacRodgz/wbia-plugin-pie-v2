@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
+from torch_ort import ORTModule
 import torch
 import metrics
 from losses import TripletLoss, CrossEntropyLoss
@@ -38,6 +39,7 @@ class TripletPIEEngine(PIEEngine):
     ):
         super(TripletPIEEngine, self).__init__(datamanager, use_gpu)
 
+        #self.model = ORTModule(model)
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -58,6 +60,11 @@ class TripletPIEEngine(PIEEngine):
 
     def forward_backward(self, data):
         imgs, pids = self.parse_data_for_train(data)
+
+        if self.model.module.__class__.__name__ == 'ViTReid':
+          imgs = [self.model.module.topil(img) for img in imgs]
+          imgs = self.model.module.feature_extractor(imgs, return_tensors='pt')
+          imgs = imgs['pixel_values']
 
         if self.use_gpu:
             imgs = imgs.cuda()
