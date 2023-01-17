@@ -34,6 +34,7 @@ class Engine(object):
         self.train_loader = self.datamanager.train_loader
         self.test_loader = self.datamanager.test_loader
         self.use_gpu = torch.cuda.is_available() and use_gpu
+        self.scaler = torch.cuda.amp.GradScaler()
         self.writer = None
         self.epoch = 0
 

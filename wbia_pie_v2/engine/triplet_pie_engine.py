@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
+import torch
 import metrics
 from losses import TripletLoss, CrossEntropyLoss
 
@@ -62,26 +63,30 @@ class TripletPIEEngine(PIEEngine):
             imgs = imgs.cuda()
             pids = pids.cuda()
 
-        outputs, features = self.model(imgs)
+        with torch.cuda.amp.autocast():
+          outputs, features = self.model(imgs)
 
-        loss = 0
-        loss_summary = {}
+          loss = 0
+          loss_summary = {}
 
-        if self.weight_t > 0:
-            loss_t = self.compute_loss(self.criterion_t, features, pids)
-            loss += self.weight_t * loss_t
-            loss_summary['loss_t'] = loss_t.item()
+          if self.weight_t > 0:
+              loss_t = self.compute_loss(self.criterion_t, features, pids)
+              loss += self.weight_t * loss_t
+              loss_summary['loss_t'] = loss_t.item()
 
-        if self.weight_x > 0:
-            loss_x = self.compute_loss(self.criterion_x, outputs, pids)
-            loss += self.weight_x * loss_x
-            loss_summary['loss_x'] = loss_x.item()
-            loss_summary['acc'] = metrics.accuracy(outputs, pids)[0].item()
+          if self.weight_x > 0:
+              loss_x = self.compute_loss(self.criterion_x, outputs, pids)
+              loss += self.weight_x * loss_x
+              loss_summary['loss_x'] = loss_x.item()
+              loss_summary['acc'] = metrics.accuracy(outputs, pids)[0].item()
 
         assert loss_summary
 
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        self.optimizer.zero_grad(set_to_none=True)
+        #loss.backward()
+        self.scaler.scale(loss).backward()
+        #self.optimizer.step()
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
 
         return loss_summary

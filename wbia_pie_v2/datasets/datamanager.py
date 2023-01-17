@@ -57,7 +57,7 @@ class AnimalImageDataManager:
         use_gpu=True,
         batch_size_train=32,
         batch_size_test=32,
-        workers=4,
+        workers=2,
         num_instances=4,
         num_copies=1,
         config_fpath='',
