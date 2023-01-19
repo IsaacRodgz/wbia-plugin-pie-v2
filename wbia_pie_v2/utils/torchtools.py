@@ -9,7 +9,6 @@ from functools import partial
 from collections import OrderedDict
 import torch
 import torch.nn as nn
-from torch_ort import ORTModule
 
 
 __all__ = [
@@ -104,6 +103,7 @@ def resume_from_checkpoint(fpath, model, optimizer=None, scheduler=None):
     print('Loading checkpoint from "{}"'.format(fpath))
     checkpoint = load_checkpoint(fpath)
     model.load_state_dict(checkpoint['state_dict'])
+    model.train()
     print('Loaded model weights')
     if optimizer is not None and 'optimizer' in checkpoint.keys():
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -169,8 +169,6 @@ def open_specified_layers(model, open_layers):
         open_layers (str or list): layers open for training.
 
     """
-    if isinstance(model, ORTModule):
-        model = model.module
     
     if isinstance(model, nn.DataParallel):
         model = model.module

@@ -1,6 +1,7 @@
 model:
   name: 'resnet50_fc512'
-  pretrained: True
+  resume: '/content/drive/MyDrive/01_whaleshark_cropped_resnet50_v1/model/model.pth.tar-110'
+  load_weights: '/content/drive/MyDrive/01_whaleshark_cropped_resnet50_v1/model/model-best.pth.tar'
 
 data:
   type: 'image'
@@ -9,6 +10,7 @@ data:
   width: 256
   transforms_train: ['center_crop', 'random_affine', 'color_jitter', 'random_grayscale', 'blur']
   version: 'v1'
+  save_dir: '/content/drive/MyDrive'
 
 loss:
   name: 'triplet'
